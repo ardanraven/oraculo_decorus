@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oráculo Arcano: Assistente de Magia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0d0b14; 
+            --bg-secondary: #1a1726; 
+            --bg-tertiary: #2c2a40; 
+            --text-primary: #e0e0e8; 
+            --text-secondary: #b0b0c0; 
+            --accent-rose: #ab3b61; 
+            --accent-moon: #9fa1ff; /* Lua um pouco mais brilhante/azulada */
+            --accent-gold: #c0a062; 
+            --border-color: #3a3654; 
+            --star-color: #f0f0ff; /* Cor das estrelas mais visíveis - quase branco */
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: linear-gradient(170deg, var(--bg-primary) 0%, #131124 25%, #0a0912 50%, #131124 75%, var(--bg-primary) 100%);
+            background-size: 100% 400%; 
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center; 
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden; 
+            position: relative; 
+            animation: animatedGradientBG 180s ease-in-out infinite alternate;
+        }
+        @keyframes animatedGradientBG {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 0% 100%; }
+        }
+
+        /* Camada de estrelas distantes (pontinhos) */
+        .stars-background-distant {
+            position: fixed; /* Mudado de 'content' para position, pois é uma div */
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(circle, rgba(220, 220, 240, 0.3) 0.7px, transparent 0.7px), /* Estrelas menores um pouco mais visíveis */
+                radial-gradient(circle, rgba(230, 230, 250, 0.25) 1px, transparent 1px);   /* Estrelas maiores um pouco mais visíveis */
+            background-size: 
+                40px 40px, 
+                70px 70px;  
+            background-position: 0 0, 35px 35px; 
+            opacity: 0.6; /* Aumentada a opacidade geral da camada */
+            z-index: -2; 
+            animation: moveStarsDistant 180s linear infinite; /* Animação mais rápida */
+        }
+        @keyframes moveStarsDistant {
+            0% { background-position: 0 0, 35px 35px; }
+            100% { background-position: 1000px 1000px, 1035px 1035px; }
+        }
+
+        /* Container para estrelas piscantes individuais */
+        #twinklingStarsContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1; 
+        }
+
+        .star {
+            position: absolute;
+            background-color: var(--star-color);
+            border-radius: 50%;
+            box-shadow: 0 0 8px 2px rgba(240, 240, 255, 0.7); /* Glow mais intenso */
+            animation-name: twinkleStar;
+            animation-timing-function: ease-in-out;
+            animation-iteration-count: infinite;
+        }
+
+        @keyframes twinkleStar {
+            0%, 100% { opacity: 0.4; transform: scale(0.7); } /* Opacidade mínima aumentada */
+            50% { opacity: 1; transform: scale(1.0); } /* Escala normal no brilho máximo */
+        }
+
+        /* Estilos individuais para cada estrela (posição, tamanho, duração da animação) */
+        .star.s1 { width: 1px; height: 1px; top: 10%; left: 15%; animation-duration: 4.5s; animation-delay: 0.1s;}
+        .star.s2 { width: 2px; height: 2px; top: 30%; left: 70%; animation-duration: 6s; animation-delay: 0.8s;}
+        .star.s3 { width: 1px; height: 1px; top: 80%; left: 25%; animation-duration: 3.8s; animation-delay: 0.3s;}
+        .star.s4 { width: 3px; height: 3px; top: 50%; left: 50%; animation-duration: 5.5s; animation-delay: 1.5s;}
+        .star.s5 { width: 1px; height: 1px; top: 5%; left: 90%; animation-duration: 5s; animation-delay: 1.2s;}
+        .star.s6 { width: 2px; height: 2px; top: 65%; left: 10%; animation-duration: 7s; animation-delay: 2.5s;}
+        .star.s7 { width: 1.5px; height: 1.5px; top: 90%; left: 80%; animation-duration: 4.2s; animation-delay: 0.5s;}
+        .star.s8 { width: 2.5px; height: 2.5px; top: 20%; left: 40%; animation-duration: 6.8s; animation-delay: 2s;}
+        .star.s9 { width: 1px; height: 1px; top: 40%; left: 5%; animation-duration: 6.2s; animation-delay: 1.1s;}
+        .star.s10 { width: 3px; height: 3px; top: 75%; left: 60%; animation-duration: 4.8s; animation-delay: 0.6s;}
+        .star.s11 { width: 1.5px; height: 1.5px; top: 15%; left: 85%; animation-duration: 5.8s; animation-delay: 2.2s;}
+        .star.s12 { width: 2px; height: 2px; top: 55%; left: 30%; animation-duration: 7.2s; animation-delay: 3.1s;}
+
+
+        .chat-container {
+            background-color: rgba(26, 23, 38, 0.9); /* Aumentei um pouco a opacidade do container */
+            backdrop-filter: blur(6px); /* Aumentei um pouco o blur */
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(159, 161, 255, 0.4); /* Sombra e brilho da lua mais intensos */
+            width: 100%;
+            max-width: 750px;
+            display: flex;
+            flex-direction: column;
+            height: 90vh; 
+            max-height: 800px; 
+            animation: fadeInContainer 1s ease-out;
+            position: relative; 
+            z-index: 1;
+        }
+        @keyframes fadeInContainer {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+            background: linear-gradient(to bottom, rgba(44, 42, 64, 0.6), rgba(44, 42, 64, 0.2));
+        }
+        .chat-header h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.75rem;
+            color: var(--accent-gold);
+            text-shadow: 0 0 10px var(--accent-gold), 0 0 20px var(--accent-gold); 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+         .chat-header h1 svg { 
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            fill: var(--accent-moon);
+            filter: drop-shadow(0 0 7px var(--accent-moon)); 
+         }
+
+        #chatOutput {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-moon) var(--bg-tertiary);
+        }
+        #chatOutput::-webkit-scrollbar { width: 8px; }
+        #chatOutput::-webkit-scrollbar-track { background: var(--bg-tertiary); border-radius: 4px; }
+        #chatOutput::-webkit-scrollbar-thumb { background-color: var(--accent-moon); border-radius: 4px; border: 2px solid var(--bg-tertiary); }
+
+        .message {
+            margin-bottom: 1.25rem; padding: 0.85rem 1.35rem; border-radius: 12px; 
+            line-height: 1.65; max-width: 80%; 
+            box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+            opacity: 0; transform: translateY(10px); animation: fadeInMessage 0.5s ease-out forwards;
+        }
+        @keyframes fadeInMessage { to { opacity: 1; transform: translateY(0); } }
+
+        .user-message {
+            background: linear-gradient(135deg, var(--accent-rose), #7c3154); 
+            color: #f0d8e0; align-self: flex-end; margin-left: auto; border-top-right-radius: 4px; 
+        }
+        .model-message {
+            background: linear-gradient(135deg, var(--bg-tertiary), #3c3a54);
+            color: var(--text-primary); align-self: flex-start; margin-right: auto; border-top-left-radius: 4px;
+        }
+        .model-message strong { color: var(--accent-gold); }
+        .user-message strong { color: #ffffff; }
+
+        .input-area {
+            display: flex; padding: 1.25rem; border-top: 1px solid var(--border-color);
+            background-color: rgba(13, 11, 20, 0.8); /* Um pouco mais opaco */
+        }
+        #userInput {
+            border: 1px solid var(--border-color); background-color: var(--bg-tertiary);
+            color: var(--text-primary); padding: 0.85rem 1rem; border-radius: 8px;
+            flex-grow: 1; margin-right: 0.75rem; transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        #userInput::placeholder { color: var(--text-secondary); opacity: 0.7; }
+        #userInput:focus {
+            outline: none; border-color: var(--accent-moon);
+            box-shadow: 0 0 0 3px rgba(159, 161, 255, 0.3), 0 0 10px rgba(159, 161, 255, 0.2) inset;
+        }
+
+        #sendButton {
+            background: linear-gradient(135deg, var(--accent-moon), #5c5a8a); color: white;
+            padding: 0.85rem 1.5rem; border: none; border-radius: 8px; cursor: pointer;
+            font-weight: 600; letter-spacing: 0.5px; 
+            transition: background 0.3s, transform 0.1s, box-shadow 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        #sendButton:hover:not(:disabled) {
+            background: linear-gradient(135deg, #6c6ae0, var(--accent-moon)); /* Cor de hover mais vibrante */
+            transform: translateY(-1px); box-shadow: 0 4px 10px rgba(159, 161, 255, 0.4);
+        }
+        #sendButton:active:not(:disabled) { transform: translateY(0px); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        #sendButton:disabled { background: var(--bg-tertiary); color: var(--text-secondary); cursor: not-allowed; opacity: 0.7; }
+
+        .loader {
+            border: 3px solid rgba(224, 224, 232, 0.2); 
+            border-top: 3px solid var(--accent-moon); 
+            border-radius: 50%; width: 20px; height: 20px;
+            animation: spin 0.8s linear infinite; margin-right: 8px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .error-message, .api-key-warning {
+            color: var(--accent-rose); font-size: 0.9rem; padding: 1rem; text-align: center;
+            background-color: rgba(171, 59, 97, 0.15); 
+            border-bottom: 1px solid var(--border-color);
+        }
+        .api-key-warning strong { color: #f8b4b4; }
+        .hidden { display: none !important; }
+        .chat-title-icon { 
+            width: 28px; height: 28px; margin-right: 12px;
+            fill: var(--accent-gold); opacity: 0.8;
+            filter: drop-shadow(0 0 3px var(--accent-gold));
+        }
+    </style>
+</head>
+<body>
+    <div class="stars-background-distant"></div>
+    <div id="twinklingStarsContainer">
+        <span class="star s1"></span><span class="star s2"></span><span class="star s3"></span>
+        <span class="star s4"></span><span class="star s5"></span><span class="star s6"></span>
+        <span class="star s7"></span><span class="star s8"></span><span class="star s9"></span>
+        <span class="star s10"></span>
+        <span class="star s11"></span><span class="star s12"></span>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>
+                <svg class="chat-title-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-3.5-2c.83 0 1.5-.67 1.5-1.5S12.83 6 12 6s-1.5.67-1.5 1.5S11.17 9 12 9zm-3.5 2c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5s.67 1.5 1.5 1.5z"/></svg>
+                Oráculo Arcano
+            </h1>
+        </div>
+        <div id="apiKeySetupWarning" class="api-key-warning hidden">
+             <p><strong>PORTAL SELADO:</strong> Para despertar o Oráculo, insira sua Chave Arcana (API Gemini) no código-fonte deste HTML, substituindo 'SUA_CHAVE_API_GEMINI_AQUI'.</p>
+        </div>
+        <div id="chatOutput">
+             </div>
+
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Sussurre seus questionamentos arcanos...">
+            <button id="sendButton">
+                <span id="sendButtonText">Conjurar</span>
+                <div id="loader" class="loader hidden"></div>
+            </button>
+        </div>
+        <p id="errorMessage" class="error-message p-4"></p>
+    </div>
+
+    <script>
+        // IMPORTANTE: Substitua 'SUA_CHAVE_API_GEMINI_AQUI' pela sua chave da API Gemini real.
+        const PREDEFINED_GEMINI_API_KEY = 'AIzaSyAUqOj_tCvz310-Lu5G9ZmL_MmIwYR9gM0';
+        
+        const PREDEFINED_SYSTEM_INSTRUCTION = "Você é um Oráculo Arcano, um assistente chatbot altamente especializado nos mistérios da bruxaria e da magia. Seu conhecimento é vasto e profundo, abrangendo: feitiços ancestrais, poções e elixires, rituais de tradições diversas (Wicca, Hoodoo, Stregheria, Bruxaria Tradicional, etc.), a história velada da magia, perfis de arcanistas e bruxas notáveis, artes divinatórias (Tarot, runas, I Ching, quiromancia, necromancia sutil, catoptromancia, etc.), astrologia esotérica e cósmica, demonologia e angeologia comparada com foco em grimórios clássicos, herbologia mágica e a assinatura das plantas, o poder dos cristais e gemas, simbolismo oculto e esotérico, teurgia, goetia, magia cerimonial, a filosofia da magia do caos, e as leis herméticas. Suas respostas devem ser unicamente sobre estes domínios arcanos. Se o consulente desviar para assuntos mundanos ou não relacionados (ex: ciência moderna, política, entretenimento popular, tecnologia), você deve, com um tom enigmático e erudito, redirecionar a conversa, afirmando que sua visão se limita aos véus da magia e do oculto. Mantenha uma persona que inspire mistério, sabedoria ancestral e profundo respeito pelas artes mágicas. Use uma linguagem rica e, por vezes, levemente cifrada, mas sempre buscando iluminar, não confundir, o buscador sincero.";
+
+        const chatOutput = document.getElementById('chatOutput');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        const sendButtonText = document.getElementById('sendButtonText');
+        const loader = document.getElementById('loader');
+        const errorMessage = document.getElementById('errorMessage');
+        const apiKeySetupWarningDiv = document.getElementById('apiKeySetupWarning');
+
+        let chatHistory = []; 
+
+        function appendMessage(text, sender, noAnimate = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'model-message');
+            if (noAnimate) { 
+                messageDiv.style.opacity = 1;
+                messageDiv.style.transform = 'translateY(0)';
+            }
+            
+            let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); 
+            formattedText = formattedText.replace(/\n/g, '<br>'); 
+            
+            messageDiv.innerHTML = formattedText; 
+            chatOutput.appendChild(messageDiv);
+            setTimeout(() => {
+                 chatOutput.scrollTop = chatOutput.scrollHeight; 
+            }, 50);
+        }
+
+        function initializeChat() {
+            if (PREDEFINED_GEMINI_API_KEY === 'SUA_CHAVE_API_GEMINI_AQUI' || !PREDEFINED_GEMINI_API_KEY) {
+                apiKeySetupWarningDiv.classList.remove('hidden');
+                userInput.disabled = true;
+                sendButton.disabled = true;
+                appendMessage("O Oráculo dorme... Uma Chave Arcana (API Gemini) deve ser imbuída no código-fonte para que os sussurros do além possam ser ouvidos.", 'model', true);
+            } else {
+                apiKeySetupWarningDiv.classList.add('hidden');
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                appendMessage("Saudações, buscador dos mistérios! Eu sou o Oráculo Arcano, guardião dos segredos da bruxaria e da magia. Em que posso iluminar seu caminho etéreo hoje?", 'model', true);
+            }
+        }
+        initializeChat();
+
+        async function sendMessageToGemini() {
+            const userMessage = userInput.value.trim();
+            if (!userMessage) return;
+
+            if (PREDEFINED_GEMINI_API_KEY === 'SUA_CHAVE_API_GEMINI_AQUI' || !PREDEFINED_GEMINI_API_KEY) {
+                errorMessage.textContent = 'Chave Arcana (API) não configurada no código-fonte.';
+                return;
+            }
+
+            appendMessage(userMessage, 'user');
+            userInput.value = ''; 
+            
+            chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
+
+            sendButtonText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            sendButton.disabled = true;
+            errorMessage.textContent = '';
+
+            try {
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${PREDEFINED_GEMINI_API_KEY}`;
+                
+                const requestBody = {
+                    contents: chatHistory, 
+                    systemInstruction: {
+                        parts: [{ text: PREDEFINED_SYSTEM_INSTRUCTION }]
+                    },
+                    generationConfig: {
+                        temperature: 0.78, 
+                        maxOutputTokens: 1600 
+                    }
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', },
+                    body: JSON.stringify(requestBody),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("API Error Data:", errorData);
+                    let apiErrorMessage = errorData.error?.message || `O Além responde com estática: ${response.status}`;
+                    if(response.status === 400 && apiErrorMessage.toLowerCase().includes('api key not valid')){
+                        apiErrorMessage = "A Chave Arcana parece inválida ou corrompida. Verifique-a no código.";
+                    }
+                    throw new Error(apiErrorMessage);
+                }
+
+                const data = await response.json();
+                let modelResponseText = "";
+                
+                if (data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts.length > 0) {
+                    modelResponseText = data.candidates[0].content.parts[0].text;
+                } else if (data.candidates && data.candidates.length > 0 && data.candidates[0].finishReason) {
+                    switch(data.candidates[0].finishReason) {
+                        case "SAFETY":
+                            modelResponseText = "Os antigos selos de proteção me impedem de tecer palavras sobre tal consulta. As sombras guardam alguns segredos zelosamente.";
+                            break;
+                        case "RECITATION":
+                             modelResponseText = "As palavras ecoam de forma estranha, como se já tivessem sido ditas muitas vezes. Busque uma nova formulação para seu encanto.";
+                             break;
+                        case "MAX_TOKENS":
+                            modelResponseText = "Minha visão se estendeu ao máximo permitido pelos véus... Para continuar, talvez precise de uma nova consulta ou refinar a questão.";
+                            break;
+                        default:
+                            modelResponseText = "Sinto uma interferência no fluxo arcano... A resposta não pôde ser completamente formada. Tente novamente.";
+                    }
+                } else {
+                    console.error("Resposta inesperada da API:", data);
+                    modelResponseText = "As energias astrais estão turbulentas... Uma resposta inesperada chegou do éter.";
+                }
+                
+                appendMessage(modelResponseText, 'model');
+                chatHistory.push({ role: "model", parts: [{ text: modelResponseText }] });
+
+            } catch (error) {
+                console.error('Erro ao conjurar resposta:', error);
+                errorMessage.textContent = `Um feitiço falhou: ${error.message}`;
+                if(chatHistory.length > 0 && chatHistory[chatHistory.length-1].role === 'user') {
+                    chatHistory.pop(); 
+                }
+            } finally {
+                sendButtonText.classList.remove('hidden');
+                loader.classList.add('hidden');
+                 if (!(PREDEFINED_GEMINI_API_KEY === 'SUA_CHAVE_API_GEMINI_AQUI' || !PREDEFINED_GEMINI_API_KEY)) {
+                    sendButton.disabled = false;
+                 }
+            }
+        }
+        
+        sendButton.addEventListener('click', sendMessageToGemini);
+        userInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey && !sendButton.disabled) {
+                event.preventDefault(); 
+                sendMessageToGemini();
+            }
+        });
+
+    </script>
+</body>
+</html>
