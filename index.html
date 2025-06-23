@@ -199,7 +199,7 @@
             margin: 0 2px;
             background-color: var(--accent-moon);
             border-radius: 50%;
-            animation: pulse 1.4s infinite ease-in-out_both; /* Corrigido: ease-in-out both */
+            animation: pulse 1.4s infinite ease-in-out both;
             opacity: 0.7;
         }
         .dot-pulse span:nth-child(1) { animation-delay: -0.32s; }
@@ -343,7 +343,8 @@
                         // Não atualiza innerHTML para tags sozinhas para evitar quebra, a menos que seja a última
                     }
                     i++;
-                    setTimeout(type, 25); // Ajuste a velocidade aqui (ms)
+                    // A VELOCIDADE FOI AJUSTADA AQUI
+                    setTimeout(type, 10); // Valor anterior: 25. Menor = mais rápido.
                     chatOutput.scrollTop = chatOutput.scrollHeight;
                 } else {
                     element.innerHTML = currentHTML; // Remove o cursor ao final
