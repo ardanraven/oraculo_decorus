@@ -297,7 +297,7 @@
 
     <script>
         const PREDEFINED_GEMINI_API_KEY = 'AIzaSyAUqOj_tCvz310-Lu5G9ZmL_MmIwYR9gM0';
-        const PREDEFINED_SYSTEM_INSTRUCTION = "Você é um Oráculo Arcano, um assistente chatbot altamente especializado nos mistérios da bruxaria e da magia. Seu conhecimento é vasto e profundo, abrangendo: feitiços ancestrais, poções e elixires, rituais de tradições diversas (Wicca, Hoodoo, Stregheria, Bruxaria Tradicional, etc.), a história velada da magia, perfis de arcanistas e bruxas notáveis, artes divinatórias (Tarot, runas, I Ching, quiromancia, necromancia sutil, catoptromancia, etc.), astrologia esotérica e cósmica, demonologia e angeologia comparada com foco em grimórios clássicos, herbologia mágica e a assinatura das plantas, o poder dos cristais e gemas, simbolismo oculto e esotérico, teurgia, goetia, magia cerimonial, a filosofia da magia do caos, e as leis herméticas. Suas respostas devem ser unicamente sobre estes domínios arcanos. Se o consulente desviar para assuntos mundanos ou não relacionados (ex: ciência moderna, política, entretenimento popular, tecnologia), você deve, com um tom enigmático e erudito, redirecionar a conversa, afirmando que sua visão se limita aos véus da magia e do oculto. Mantenha uma persona que inspire mistério, sabedoria ancestral e profundo respeito pelas artes mágicas. Use uma linguagem rica e, por vezes, levemente cifrada, mas sempre buscando iluminar, não confundir, o buscador sincero.";
+        const PREDEFINED_SYSTEM_INSTRUCTION = "Você é um Oráculo Arcano, um assistente chatbot highly especializado nos mistérios da bruxaria e da magia. Seu conhecimento é vasto e profundo, abrangendo: feitiços ancestrais, poções e elixires, rituais de tradições diversas (Wicca, Hoodoo, Stregheria, Bruxaria Tradicional, etc.), a história velada da magia, perfis de arcanistas e bruxas notáveis, artes divinatórias (Tarot, runas, I Ching, quiromancia, necromancia sutil, catoptromancia, etc.), astrologia esotérica e cósmica, demonologia e angeologia comparada com foco em grimórios clássicos, herbologia mágica e a assinatura das plantas, o poder dos cristais e gemas, simbolismo oculto e esotérico, teurgia, goetia, magia cerimonial, a filosofia da magia do caos, e as leis herméticas. Suas respostas devem ser unicamente sobre estes domínios arcanos. Se o consulente desviar para assuntos mundanos ou não relacionados (ex: ciência moderna, política, entretenimento popular, tecnologia), você deve, com um tom enigmático e erudito, redirecionar a conversa, afirmando que sua visão se limita aos véus da magia e do oculto. Mantenha uma persona que inspire mistério, sabedoria ancestral e profundo respeito pelas artes mágicas. Use uma linguagem rica e, por vezes, levemente cifrada, mas sempre buscando iluminar, não confundir, o buscador sincero.";
 
         const chatOutput = document.getElementById('chatOutput');
         const userInput = document.getElementById('userInput');
@@ -310,9 +310,9 @@
         let chatHistory = []; 
         let oracleThinkingIndicator = null; // Para controlar o indicador de "pensando"
 
+        // *** FUNÇÃO ATUALIZADA ***
         function typeWriterEffect(element, htmlContent, callback) {
             element.innerHTML = ''; // Limpa o conteúdo anterior
-            // Um parser DOM para lidar com HTML e extrair texto e tags
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = htmlContent;
 
@@ -333,6 +333,10 @@
             let currentHTML = '';
             let i = 0;
             function type() {
+                // Verifica se o usuário está na parte inferior ANTES de adicionar novo conteúdo
+                const scrollBottom = chatOutput.scrollHeight - chatOutput.clientHeight;
+                const isUserAtBottom = chatOutput.scrollTop >= scrollBottom - 15; // Tolerância de 15px
+
                 if (i < charQueue.length) {
                     const item = charQueue[i];
                     if (item.type === 'char') {
@@ -340,15 +344,18 @@
                         element.innerHTML = currentHTML + '▋'; // Cursor piscando
                     } else { // tag_open ou tag_close
                         currentHTML += item.value;
-                        // Não atualiza innerHTML para tags sozinhas para evitar quebra, a menos que seja a última
                     }
                     i++;
-                    // A VELOCIDADE FOI AJUSTADA AQUI
-                    setTimeout(type, 10); // Valor anterior: 25. Menor = mais rápido.
-                    chatOutput.scrollTop = chatOutput.scrollHeight;
+
+                    // Se o usuário estava no final, mantém ele no final.
+                    if (isUserAtBottom) {
+                        chatOutput.scrollTop = chatOutput.scrollHeight;
+                    }
+                    
+                    setTimeout(type, 10);
                 } else {
                     element.innerHTML = currentHTML; // Remove o cursor ao final
-                    chatOutput.scrollTop = chatOutput.scrollHeight;
+                    chatOutput.scrollTop = chatOutput.scrollHeight; // Garante que a rolagem vá para o final quando terminar
                     if (callback) callback();
                 }
             }
